@@ -13,7 +13,7 @@ struct Todo {
     id: String,
     title: String,
     content: String,
-    completed: bool,
+    status: i32,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -58,12 +58,21 @@ fn get_todo_by_id(id: String) -> Option<Json<Todo>> {
 }
 
 #[post("/todo", format = "json", data = "<todo>")]
-fn add_todo(todo: Json<Todo>) -> Option<Json<TodoCreatedResponse>> {
+fn add_todo(todo: Json<Todo>) -> Result<Json<TodoCreatedResponse>, Status> {
+    let valid_status = match todo.status {
+        0 | 1 | 2 => true,
+        _ => false,
+    };
+
+    if !valid_status {
+        return Err(Status::BadRequest);
+    }
+
     let new_todo: Todo = Todo {
         id: nanoid!(),
         title: todo.title.clone(),
         content: todo.content.clone(),
-        completed: todo.completed,
+        status: todo.status.clone(),
     };
 
     set_object(new_todo.clone()).expect("Failed to store TODO in Redis");
@@ -72,21 +81,35 @@ fn add_todo(todo: Json<Todo>) -> Option<Json<TodoCreatedResponse>> {
         message: "Todo added successfully.".to_string(),
         id: new_todo.id,
     };
-    Some(Json(created_todo_response))
+    Ok(Json(created_todo_response))
 }
 
-#[put("/todo/<id>/complete")]
-fn complete_todo(id: String) -> Result<content::RawJson<&'static str>, Status> {
+#[put("/todo/<id>/<status>")]
+fn update_todo(id: String, status: i32) -> Result<content::RawJson<&'static str>, Status> {
     let mut todo: Todo = get_object(id.clone()).expect("Failed to get object from Redis");
 
-    if todo.completed {
+    let valid_status = match todo.status {
+        0 | 1 | 2 => true,
+        _ => false,
+    };
+
+    if !valid_status {
+        return Err(Status::BadRequest);
+    }
+
+    if todo.status == status {
         return Err(Status::Conflict);
     }
 
-    todo.completed = true;
+    todo.status = status;
     set_object(todo).expect("Failed to update TODO in Redis");
 
-    Ok(content::RawJson("{\"message\": \"Todo marked as completed.\"}"))
+    Ok(content::RawJson("{\"message\": \"Todo status updated.\"}"))
+}
+
+#[catch(400)]
+fn bad_request() -> content::RawJson<&'static str> {
+    content::RawJson("{\"message\": \"Bad request.\"}")
 }
 
 #[catch(404)]
@@ -103,8 +126,8 @@ fn conflict() -> content::RawJson<&'static str> {
 fn rocket() -> _ {
     rocket
         ::build()
-        .mount("/", routes![index, get_todos, get_todo_by_id, add_todo, complete_todo, health])
-        .register("/", catchers![not_found, conflict])
+        .mount("/", routes![index, get_todos, get_todo_by_id, add_todo, update_todo, health])
+        .register("/", catchers![not_found, conflict, bad_request])
 }
 
 fn set_object(todo: Todo) -> redis::RedisResult<()> {

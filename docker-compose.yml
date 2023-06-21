@@ -6,6 +6,7 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
+    container_name: backend
     depends_on:
       - redis-stack
     environment:
@@ -19,6 +20,21 @@ services:
       - "6379:6379"
       - "8001:8001"
     container_name: redis
+    networks:
+      - todo-network
+  todo-client:
+    restart: unless-stopped
+    build: 
+      context: todo-client/
+      dockerfile: Dockerfile
+    command: node --experimental-modules index.js
+    volumes:
+      - .:/usr/app/
+      - /usr/app/node_modules
+    ports:
+      - 9494:3000
+    environment:
+      - VITE_PUBLIC_BASE_PATH=http://backend:8000
     networks:
       - todo-network
   
