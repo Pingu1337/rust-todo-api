@@ -1,0 +1,26 @@
+version: "3.8"
+services:
+  todo-api:
+    build: 
+      context: todo-api/
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis-stack
+    environment:
+      - REDIS_URL=redis://sandbox-redis-stack-1/
+    networks:
+      - todo-network
+
+  redis-stack:
+    image: redis/redis-stack:latest
+    ports:
+      - "6379:6379"
+      - "8001:8001"
+    networks:
+      - todo-network
+  
+networks:
+  todo-network:
+      driver: bridge
