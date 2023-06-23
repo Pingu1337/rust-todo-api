@@ -3,6 +3,9 @@
     background: none !important;
     border-radius: 50% !important;
     transition: opacity 0.1s !important;
+    /* position: absolute !important;
+    right: 0 !important;
+    top: 1px !important; */
   }
 
 .todo-close-btn:hover {

@@ -1,6 +1,9 @@
 <script lang="ts">
   import { Button, Modal, Label, Input, Textarea } from "flowbite-svelte";
   import { TodoStatus } from "../types";
+
+  export let user: string;
+
   let textareaprops = {
     id: "content",
     name: "content",
@@ -8,6 +11,7 @@
     rows: 4,
     placeholder: "i really need to buy milk...",
   };
+
   let formModal = false;
 
   const addTodo = async (e: any) => {
@@ -20,7 +24,7 @@
       status: TodoStatus.Todo,
     };
 
-    const response = await fetch("/api/todo", {
+    const response = await fetch(`/api/todo?user=${user}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -33,7 +37,10 @@
   };
 </script>
 
-<Button color="dark" pill on:click={() => (formModal = true)}>Add TODO</Button>
+<button
+  class=" fixed lg:absolute left-10 bottom-6 lg:top-20 btn-icon btn-icon-lg variant-filled select-none"
+  on:click={() => (formModal = true)}>+</button
+>
 
 <Modal bind:open={formModal} size="xs" autoclose={false} class="w-full">
   <form class="flex flex-col space-y-6" on:submit={addTodo}>

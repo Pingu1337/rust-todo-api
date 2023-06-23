@@ -1,29 +1,57 @@
 <script lang="ts">
-  import "../@types/todo.d.ts";
-  import Board from "../components/board.svelte";
-  import { UseTodos } from "../hooks/useTodos.js";
-  import type { PageData } from "./$types";
-  import AddTodo from "../components/modal.svelte";
+  import { browser } from "$app/environment";
+  import { Button } from "flowbite-svelte";
+  import { Label, Input } from "flowbite-svelte";
+  import collapse from "svelte-collapse";
 
-  export let data: PageData;
+  let open = false;
 
-  let todoBoard: TodoList[] = UseTodos(data.todos);
+  let storedUser: string | null;
+
+  let inputUser: string | null = null;
+
+  if (browser) {
+    storedUser = window.localStorage.getItem("user");
+    if (storedUser) window.location.replace(`/kanban?user=${storedUser}`);
+  }
+
+  const setUser = (user: string) => window.localStorage.setItem("user", user);
+
+  const login = async (e: any) => {
+    e.preventDefault();
+    if (inputUser) {
+      setUser(inputUser);
+      window.location.replace(`/kanban?user=${inputUser}`);
+      return;
+    }
+    const response = await fetch("/api/login", { method: "POST" });
+    const user = await response.json();
+
+    setUser(user.id);
+    window.location.reload();
+  };
+
+  $: user = storedUser;
 </script>
 
-<header class="flex justify-center mt-3">
-  <h1 class="text-4xl font-bold">TODO: Kanban board</h1>
-</header>
+{#if !user}
+  <form on:submit={login}>
+    <div class="flex justify-center items-center flex-col mt-12 mx-auto">
+      <button
+        type="button"
+        class="btn !bg-transparent w-1/4"
+        on:click={() => (open = !open)}>Login with user code</button
+      >
 
-<div class="absolute left-4 ms-9 mt-9">
-  <AddTodo />
-</div>
-<div class="flex justify-center">
-  <Board columnItems={todoBoard} />
-</div>
-
-<style>
-  :global(*) {
-    box-sizing: border-box;
-    margin: 0;
-  }
-</style>
+      <div use:collapse={{ open }} class="mb-6 w-1/4">
+        <Input
+          id="user-code-input"
+          bind:value={inputUser}
+          size="lg"
+          placeholder="User code"
+        />
+      </div>
+      <Button class="btn btn-primary w-1/4" on:click={login}>Login</Button>
+    </div>
+  </form>
+{/if}

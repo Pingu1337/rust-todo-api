@@ -22,6 +22,12 @@ struct TodoCreatedResponse {
     id: String,
 }
 
+#[derive(Serialize, Deserialize, Clone)]
+struct NewUserResponse {
+    message: String,
+    id: String,
+}
+
 #[get("/")]
 fn index() -> content::RawJson<&'static str> {
     // Add redis health cehck here
@@ -31,7 +37,7 @@ fn index() -> content::RawJson<&'static str> {
 #[get("/health")]
 fn health() -> content::RawJson<&'static str> {
     dotenv::dotenv().ok();
-    let redis_url = dotenv::var("REDIS_URL").expect("REDIS_URL must be set");
+    let redis_url: String = dotenv::var("REDIS_URL").expect("REDIS_URL must be set");
     let client: redis::Client = redis::Client::open(redis_url).unwrap();
     let mut con: redis::Connection = client.get_connection().unwrap();
 
@@ -43,23 +49,37 @@ fn health() -> content::RawJson<&'static str> {
     }
 }
 
-#[get("/todos")]
-fn get_todos() -> Json<Vec<Todo>> {
-    let todos: Vec<Todo> = get_objects().expect("Failed to retrieve todos from Redis");
+#[post("/user/new")]
+fn new_user() -> Json<NewUserResponse> {
+    let user: String = nanoid!();
+    let response: NewUserResponse = NewUserResponse {
+        message: "New user created.".to_string(),
+        id: user.clone(),
+    };
+
+    Json(response)
+}
+
+#[get("/todos/<user>")]
+fn get_todos(user: String) -> Json<Vec<Todo>> {
+    let todos: Vec<Todo> = get_objects(user).expect("Failed to retrieve todos from Redis");
 
     Json(todos)
 }
 
 #[get("/todo/<id>")]
-fn get_todo_by_id(id: String) -> Option<Json<Todo>> {
-    let response: Todo = get_object(id.to_string()).expect("Failed to get object from Redis");
+fn get_todo_by_id(id: String) -> Result<Json<Todo>, Status> {
+    let response: Result<Todo, _> = get_object(id);
 
-    Some(Json(response))
+    match response {
+        Ok(todo) => Ok(Json(todo)),
+        Err(_) => Err(Status::NotFound),
+    }
 }
 
-#[post("/todo", format = "json", data = "<todo>")]
-fn add_todo(todo: Json<Todo>) -> Result<Json<TodoCreatedResponse>, Status> {
-    let valid_status = match todo.status {
+#[post("/todo/<user>", format = "json", data = "<todo>")]
+fn add_todo(user: String, todo: Json<Todo>) -> Result<Json<TodoCreatedResponse>, Status> {
+    let valid_status: bool = match todo.status {
         0 | 1 | 2 => true,
         _ => false,
     };
@@ -68,8 +88,10 @@ fn add_todo(todo: Json<Todo>) -> Result<Json<TodoCreatedResponse>, Status> {
         return Err(Status::BadRequest);
     }
 
+    let id: String = format!("{}:{}", user, nanoid!());
+
     let new_todo: Todo = Todo {
-        id: nanoid!(),
+        id,
         title: todo.title.clone(),
         content: todo.content.clone(),
         status: todo.status.clone(),
@@ -86,9 +108,7 @@ fn add_todo(todo: Json<Todo>) -> Result<Json<TodoCreatedResponse>, Status> {
 
 #[put("/todo/<id>/<status>")]
 fn update_todo(id: String, status: i32) -> Result<content::RawJson<&'static str>, Status> {
-    let mut todo: Todo = get_object(id.clone()).expect("Failed to get object from Redis");
-
-    let valid_status = match todo.status {
+    let valid_status: bool = match status {
         0 | 1 | 2 => true,
         _ => false,
     };
@@ -96,6 +116,8 @@ fn update_todo(id: String, status: i32) -> Result<content::RawJson<&'static str>
     if !valid_status {
         return Err(Status::BadRequest);
     }
+
+    let mut todo: Todo = get_object(id).expect("Failed to get object from Redis");
 
     if todo.status == status {
         return Err(Status::Conflict);
@@ -109,7 +131,7 @@ fn update_todo(id: String, status: i32) -> Result<content::RawJson<&'static str>
 
 #[delete("/todo/<id>")]
 fn delete_todo_by_id(id: String) -> Result<content::RawJson<&'static str>, Status> {
-    let result = delete_object(id.clone());
+    let result: Result<(), redis::RedisError> = delete_object(id);
 
     match result {
         Ok(_) => Ok(content::RawJson("{\"message\": \"Todo deleted.\"}")),
@@ -145,7 +167,8 @@ fn rocket() -> _ {
                 add_todo,
                 update_todo,
                 delete_todo_by_id,
-                health
+                health,
+                new_user
             ]
         )
         .register("/", catchers![not_found, conflict, bad_request])
@@ -164,13 +187,14 @@ fn set_object(todo: Todo) -> redis::RedisResult<()> {
     Ok(())
 }
 
-fn get_objects() -> redis::RedisResult<Vec<Todo>> {
+fn get_objects(user: String) -> redis::RedisResult<Vec<Todo>> {
     dotenv::dotenv().ok();
-    let redis_url = dotenv::var("REDIS_URL").expect("REDIS_URL must be set");
+    let redis_url: String = dotenv::var("REDIS_URL").expect("REDIS_URL must be set");
     let client: redis::Client = redis::Client::open(redis_url)?;
     let mut con: redis::Connection = client.get_connection()?;
 
-    let keys: Vec<String> = con.keys("*")?;
+    let query = format!("{}:*", user);
+    let keys: Vec<String> = con.keys(query)?;
 
     let mut values: Vec<Todo> = Vec::new();
     for key in keys {

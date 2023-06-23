@@ -2,12 +2,17 @@
   // @ts-nocheck
   import { flip } from "svelte/animate";
   import { dndzone } from "svelte-dnd-action";
-  import { Button } from "flowbite-svelte";
   import TodoCardContent from "./todo-card-content.svelte";
+
+  export let user: string;
+
   const updateTodo = async (status: number, id: string) => {
-    const response = await fetch(`/api/todo/?id=${id}&status=${status}`, {
-      method: "PUT",
-    });
+    const response = await fetch(
+      `/api/todo/?id=${id}&user=${user}&status=${status}`,
+      {
+        method: "PUT",
+      }
+    );
     console.log(await response.json());
   };
 
@@ -62,15 +67,18 @@
       >
         {#each column.todos as todo (todo.id)}
           <div
-            class="card p-4 variant-filled mt-3"
+            class="card p-2 variant-filled mt-3"
             animate:flip={{ duration: flipDurationMs }}
           >
-            <TodoCardContent {todo} />
+            <TodoCardContent {todo} {user} />
           </div>
         {/each}
       </div>
     </div>
   {/each}
+  <div class="mt-5 pb-5 lg:hidden">
+    <small><i>Ez kanban</i></small>
+  </div>
 </section>
 
 <style>
@@ -78,9 +86,9 @@
     height: 90vh;
     width: 100%;
     padding: 0.5em;
-    margin-bottom: 40px;
     display: flex;
     justify-content: center;
+    flex-wrap: wrap;
   }
   .column {
     height: 100%;
@@ -95,6 +103,7 @@
     overflow-y: auto;
     scrollbar-base-color: transparent;
     outline: none !important;
+    padding-bottom: 2rem;
   }
   .column-content::-webkit-scrollbar {
     display: none;
@@ -106,14 +115,6 @@
     align-items: center;
   }
 
-  /* .card {
-    height: 15%;
-    width: 100%;
-    margin: 0.4em 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  } */
   .kanban-col {
     height: 89vh;
     padding: 1rem;
