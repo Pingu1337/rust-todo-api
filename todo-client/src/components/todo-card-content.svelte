@@ -4,15 +4,14 @@
   export let todo: Todo;
   export let user: string;
 
-  let selected: number;
+  let selected: string = todo.status.toString();
+
+  console.log(selected);
 
   const updateTodo = async () => {
-    const response = await fetch(
-      `/api/todo/?id=${todo.id}&status=${selected}`,
-      {
-        method: "PUT",
-      }
-    );
+    await fetch(`/api/todo/?id=${todo.id}&status=${selected}`, {
+      method: "PUT",
+    });
     window.location.reload();
   };
 
@@ -37,7 +36,7 @@
   bind:value={selected}
   on:change={updateTodo}
 >
-  <option value="0" selected={todo.status === 0}>Todo</option>
-  <option value="1" selected={todo.status === 1}>Doing</option>
-  <option value="2" selected={todo.status === 2}>Done</option>
+  <option value="0">Todo</option>
+  <option value="1">Doing</option>
+  <option value="2">Done</option>
 </select>

@@ -33,7 +33,14 @@
     });
     console.log(await response.json());
     formModal = false;
+    resetZoom();
     window.location.reload();
+  };
+
+  const resetZoom = () => {
+    const scale = "scale(1)";
+    document.body.style.webkitTransform = scale;
+    document.body.style.transform = scale;
   };
 </script>
 
