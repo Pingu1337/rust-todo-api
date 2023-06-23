@@ -7,12 +7,9 @@
   export let user: string;
 
   const updateTodo = async (status: number, id: string) => {
-    const response = await fetch(
-      `/api/todo/?id=${id}&user=${user}&status=${status}`,
-      {
-        method: "PUT",
-      }
-    );
+    const response = await fetch(`/api/todo/?id=${id}&status=${status}`, {
+      method: "PUT",
+    });
     console.log(await response.json());
   };
 

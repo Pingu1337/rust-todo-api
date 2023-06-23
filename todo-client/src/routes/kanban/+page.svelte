@@ -4,7 +4,6 @@
   import { UseTodos } from "../../hooks/useTodos.js";
   import type { PageData } from "./$types";
   import AddTodo from "../../components/modal.svelte";
-  import { LightSwitch } from "@skeletonlabs/skeleton";
 
   export let data: PageData;
 

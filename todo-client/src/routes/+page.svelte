@@ -37,13 +37,13 @@
 {#if !user}
   <form on:submit={login}>
     <div class="flex justify-center items-center flex-col mt-12 mx-auto">
-      <button
-        type="button"
-        class="btn !bg-transparent w-1/4"
-        on:click={() => (open = !open)}>Login with user code</button
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
+      <span
+        class="btn !bg-transparent bg-none border-none outline-none cursor-pointer select-none w-1/4"
+        on:click={() => (open = !open)}>Login with user code</span
       >
 
-      <div use:collapse={{ open }} class="mb-6 w-1/4">
+      <div use:collapse={{ open }} class="mb-6 lg:w-1/4 w-4/5">
         <Input
           id="user-code-input"
           bind:value={inputUser}

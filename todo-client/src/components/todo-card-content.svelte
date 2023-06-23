@@ -1,8 +1,20 @@
 <script lang="ts">
-  import { CloseButton } from "flowbite-svelte";
+  import { Button, CloseButton, Label, Select } from "flowbite-svelte";
   import "../styles/todo-card-content.css";
   export let todo: Todo;
   export let user: string;
+
+  let selected: number;
+
+  const updateTodo = async () => {
+    const response = await fetch(
+      `/api/todo/?id=${todo.id}&status=${selected}`,
+      {
+        method: "PUT",
+      }
+    );
+    window.location.reload();
+  };
 
   const deleteTodo = async () => {
     console.log(todo.id);
@@ -19,3 +31,13 @@
   <CloseButton on:click={deleteTodo} class="todo-close-btn" />
 </header>
 <section class="p-4">{todo.content}</section>
+
+<select
+  class="select variant-filled border-none lg:hidden"
+  bind:value={selected}
+  on:change={updateTodo}
+>
+  <option value="0" selected={todo.status === 0}>Todo</option>
+  <option value="1" selected={todo.status === 1}>Doing</option>
+  <option value="2" selected={todo.status === 2}>Done</option>
+</select>

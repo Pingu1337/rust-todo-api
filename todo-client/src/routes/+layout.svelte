@@ -22,8 +22,12 @@
 
 {#if signedIn != null}
   <main>
-    <header class="flex justify-end items-center mt-5 me-5 flex-row">
-      <div class="flex justify-evenly gap-4 items-center">
+    <header
+      class="flex justify-end items-center mt-5 me-5 lg:flex-row flex-col"
+    >
+      <div
+        class="flex justify-evenly gap-4 lg:items-center items-start lg:w-auto w-full lg:ms-0 ms-8 lg:flex-row flex-col-reverse"
+      >
         {#if signedIn}
           <!-- svelte-ignore a11y-click-events-have-key-events -->
           <small
@@ -44,9 +48,11 @@
               >
             {/if}
           </small>
-          <button class="btn variant-soft" on:click={signOut}>Sign out</button>
+          <button class="btn variant-soft me-14" on:click={signOut}
+            >Sign out</button
+          >
         {/if}
-        <LightSwitch />
+        <LightSwitch class="absolute right-2 top-7" />
       </div>
     </header>
     <slot />
