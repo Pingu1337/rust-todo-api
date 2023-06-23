@@ -1,20 +1,29 @@
 <script lang="ts">
-  import "./page.css";
+  import "../@types/todo.d.ts";
+  import Board from "../components/board.svelte";
+  import { UseTodos } from "../hooks/useTodos.js";
+  import type { PageData } from "./$types";
+  import AddTodo from "../components/modal.svelte";
+
+  export let data: PageData;
+
+  let todoBoard: TodoList[] = UseTodos(data.todos);
 </script>
 
-<main class="p-4 mt-8 mx-8">
-  <article class="grid grid-cols-4 gap-6">
-    <div class="variant-filled-primary kanban-col">
-      <div class="card p-4 variant-filled">Todo 1</div>
-    </div>
-    <div class="variant-filled-primary kanban-col">
-      <div class="card p-4 variant-filled">Todo 2</div>
-    </div>
-    <div class="variant-filled-primary kanban-col">
-      <div class="card p-4 variant-filled">Todo 3</div>
-    </div>
-    <div class="variant-filled-primary kanban-col">
-      <div class="card p-4 variant-filled">Todo 4</div>
-    </div>
-  </article>
-</main>
+<header class="flex justify-center mt-3">
+  <h1 class="text-4xl font-bold">TODO: Kanban board</h1>
+</header>
+
+<div class="absolute left-4 ms-9 mt-9">
+  <AddTodo />
+</div>
+<div class="flex justify-center">
+  <Board columnItems={todoBoard} />
+</div>
+
+<style>
+  :global(*) {
+    box-sizing: border-box;
+    margin: 0;
+  }
+</style>

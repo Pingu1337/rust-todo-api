@@ -107,6 +107,16 @@ fn update_todo(id: String, status: i32) -> Result<content::RawJson<&'static str>
     Ok(content::RawJson("{\"message\": \"Todo status updated.\"}"))
 }
 
+#[delete("/todo/<id>")]
+fn delete_todo_by_id(id: String) -> Result<content::RawJson<&'static str>, Status> {
+    let result = delete_object(id.clone());
+
+    match result {
+        Ok(_) => Ok(content::RawJson("{\"message\": \"Todo deleted.\"}")),
+        Err(_) => Err(Status::InternalServerError),
+    }
+}
+
 #[catch(400)]
 fn bad_request() -> content::RawJson<&'static str> {
     content::RawJson("{\"message\": \"Bad request.\"}")
@@ -126,7 +136,18 @@ fn conflict() -> content::RawJson<&'static str> {
 fn rocket() -> _ {
     rocket
         ::build()
-        .mount("/", routes![index, get_todos, get_todo_by_id, add_todo, update_todo, health])
+        .mount(
+            "/",
+            routes![
+                index,
+                get_todos,
+                get_todo_by_id,
+                add_todo,
+                update_todo,
+                delete_todo_by_id,
+                health
+            ]
+        )
         .register("/", catchers![not_found, conflict, bad_request])
 }
 
@@ -185,4 +206,15 @@ fn get_object(id: String) -> redis::RedisResult<Todo> {
             )
         }
     }
+}
+
+fn delete_object(id: String) -> redis::RedisResult<()> {
+    dotenv::dotenv().ok();
+    let redis_url = dotenv::var("REDIS_URL").expect("REDIS_URL must be set");
+    let client: redis::Client = redis::Client::open(redis_url)?;
+    let mut con: redis::Connection = client.get_connection()?;
+
+    let _: () = con.del(id)?;
+
+    Ok(())
 }

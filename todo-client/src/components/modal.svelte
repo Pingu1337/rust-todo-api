@@ -1,12 +1,5 @@
 <script lang="ts">
-  import {
-    Button,
-    Modal,
-    Label,
-    Input,
-    Checkbox,
-    Textarea,
-  } from "flowbite-svelte";
+  import { Button, Modal, Label, Input, Textarea } from "flowbite-svelte";
   import { TodoStatus } from "../types";
   let textareaprops = {
     id: "content",

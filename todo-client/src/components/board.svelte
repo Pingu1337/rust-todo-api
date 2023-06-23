@@ -2,7 +2,8 @@
   // @ts-nocheck
   import { flip } from "svelte/animate";
   import { dndzone } from "svelte-dnd-action";
-
+  import { Button } from "flowbite-svelte";
+  import TodoCardContent from "./todo-card-content.svelte";
   const updateTodo = async (status: number, id: string) => {
     const response = await fetch(`/api/todo/?id=${id}&status=${status}`, {
       method: "PUT",
@@ -34,9 +35,6 @@
 
     columnItems = [...columnItems];
   }
-  function handleClick(e: CustomEvent) {
-    alert("dragabble elements are still clickable :)");
-  }
 </script>
 
 <section
@@ -63,15 +61,11 @@
         on:finalize={(e) => handleDndFinalizeCards(column.id, e)}
       >
         {#each column.todos as todo (todo.id)}
-          <!-- svelte-ignore a11y-click-events-have-key-events -->
           <div
             class="card p-4 variant-filled mt-3"
             animate:flip={{ duration: flipDurationMs }}
-            on:click={handleClick}
           >
-            <small>{todo.id}</small>
-            <header class="card-header"><b>{todo.title}</b></header>
-            <section class="p-4">{todo.content}</section>
+            <TodoCardContent {todo} />
           </div>
         {/each}
       </div>

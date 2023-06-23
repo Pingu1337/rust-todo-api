@@ -53,3 +53,19 @@ export const PUT = ( async ({ url }) => {
 
     return new Response(JSON.stringify(todo));
 }) satisfies RequestHandler;
+
+export const DELETE = ( async ({ url }) => {
+
+    if (!url.searchParams.has("id")) {
+        throw error(400, "Missing id parameter");
+    }
+
+    const id = url.searchParams.get("id");
+
+    const response = await fetch(`${variables.basePath}/todo/${id}`, { method: "DELETE" });
+
+    var todo = await response.json();
+    console.log(todo);
+
+    return new Response(JSON.stringify(todo));
+}) satisfies RequestHandler;
