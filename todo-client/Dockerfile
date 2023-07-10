@@ -12,7 +12,7 @@ RUN pnpm install
 COPY . .
 WORKDIR /usr/src/app
 ENV NODE_ENV=production
-ENV VITE_PUBLIC_BASE_PATH=http://backend:8000
+ENV VITE_PUBLIC_BASE_PATH=http://todo-api:8000
 RUN pnpm run build
 
 FROM node:19-alpine
