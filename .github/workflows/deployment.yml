@@ -18,6 +18,7 @@ jobs:
           # Optional (default: no headers)
           headers: |
             Content-Type: application/json
+            Connection: Keep-Alive
             x-api-key: ${{ secrets.API_KEY }}
           # Optional (default: no body)
           body: |
