@@ -13,7 +13,6 @@ services:
       - REDIS_URL=redis://redis/
     networks:
       - todo-network
-
   redis-stack:
     image: redis/redis-stack:latest
     ports:
@@ -22,6 +21,8 @@ services:
     container_name: redis
     networks:
       - todo-network
+    volumes:
+      - /local-data/:/data
   todo-client:
     restart: unless-stopped
     build: 
