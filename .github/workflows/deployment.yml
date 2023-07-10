@@ -1,0 +1,33 @@
+name: Deployment
+on: 
+  push:
+    branches: [ "main", "build/*" ]
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy docker compose
+        id: compose_request
+        uses: tyrrrz/action-http-request@v1
+        with:
+          # Required
+          url: http://api.null.care/compose
+          # Optional (default: GET)
+          method: POST
+          # Optional (default: no headers)
+          headers: |
+            Content-Type: application/json
+            x-api-key: ${{ secrets.API_KEY }}
+          # Optional (default: no body)
+          body: |
+            {
+              "repository": "${{ github.repository }}",
+              "name": "simplicity-todo"
+            }
+
+      - name: Deploy output
+        run: |
+          echo "Status: ${{ steps.compose_request.outputs.status }}"
+          echo "Body: ${{ steps.compose_request.outputs.body }}"
+          
