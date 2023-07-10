@@ -1,4 +1,4 @@
-version: "3.8"
+version: "3.9"
 services:
   todo-api:
     build: 
@@ -14,15 +14,21 @@ services:
     networks:
       - todo-network
   redis-stack:
-    image: redis/redis-stack:latest
+    image: redis/redis-stack:edge
     ports:
       - "6379:6379"
       - "8001:8001"
     container_name: redis
     networks:
       - todo-network
+    environment:
+      - "REDIS_ARGS=--appendonly yes"
     volumes:
-      - /local-data/:/data
+      - redis_data:/data
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
   todo-client:
     restart: unless-stopped
     build: 
@@ -38,7 +44,8 @@ services:
       - VITE_PUBLIC_BASE_PATH=http://backend:8000
     networks:
       - todo-network
-  
+volumes:
+    redis_data:
 networks:
   todo-network:
       driver: bridge

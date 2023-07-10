@@ -1,4 +1,4 @@
-FROM rust:1 as builder
+FROM rust:1-slim-buster as builder
 WORKDIR /app
 COPY . .
 RUN cargo install --path .
