@@ -13,7 +13,6 @@ export const GET = ( async ({ url }) => {
     const response = await fetch(`${variables.basePath}/todos/${user}`);
 
     var todos = await response.json();
-    console.log(todos);
 
     return new Response(JSON.stringify(todos));
 }) satisfies RequestHandler;
