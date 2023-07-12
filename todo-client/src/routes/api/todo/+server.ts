@@ -66,7 +66,6 @@ export const DELETE = ( async ({ url }) => {
     const response = await fetch(`${variables.basePath}/todo/${id}`, { method: "DELETE" });
 
     var todo = await response.json();
-    console.log(todo);
 
     return new Response(JSON.stringify(todo));
 }) satisfies RequestHandler;
